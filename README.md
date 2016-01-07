@@ -1,72 +1,102 @@
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/frozeman/meteor-build-client?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# Meteor Deploy S3
 
-*Note: The meteor package `frozeman:build-client` is only a placeholder package, don't install.*
-
-# Meteor Build Client
-
-This tool builds and bundles the client part of a Meteor app with a simple index.html,
-so it can be hosted on any server or even loaded via the `file://` protocol.
+This tool builds and bundles the client part of a Meteor app with a simple index.html
+and sends it to AWS S3 for static web hosting
 
 ## Installation
 
-    $ [sudo] npm install -g meteor-build-client
+```
+$ [sudo] npm install -g meteor-deploy-s3
+```
 
 ## Usage
 
-    // cd into your meteor app
-    $ cd myApp
+#### Create a bucket in AWS S3 and enable static web hosting
 
-    // run meteor-build-client
-    $ meteor-build-client ../myOutputFolder
+Create a bucket in AWS S3, then go to the properties of that bucket,
+click Enable website hosting and set the index document to "index.html"
 
-### Output
+#### Create a AWS User
 
-The content of the output folder could look as follows:
+Go to security credentials in the menu. Go to users, and create a new one.
+Then, create a inline policy for that user.
 
-- `index.html`
-- `a28817fe16898311635fa73b959979157e830a31.css`
-- `aeca2a21c383327235a08d55994243a9f478ed57.js`
-- `...` (other files from your "public" folder)
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Stmt1452183229000",
+            "Effect": "Allow",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::bucketname",
+                "arn:aws:s3:::bucketname/*",
+            ]
+        }
+    ]
+}
+```
+
+
+#### Create a config file in your App
+
+Create a file named ```deploy.json```.
+
+```json
+{
+  "accessKeyId": "ACCESS_KEY",
+  "secretAccessKey": "SECRET_KEY",
+  "bucket": "mybucketname",
+  "region": "us-east-1"
+}
+```
+
+#### Deploy
+
+Run the command in the folder of your meteor app.
+
+```
+$ deploy-s3
+```
 
 For a list of options see:
 
-    $ meteor-build-client --help
+```
+$ deploy-s3 --help
+```
 
 ### Passing a settings.json
 
 You can pass an additional settings file using the `--settings` or `-s` option:
 
-    $ meteor-build-client ../myOutputFolder -s ../settings.json
+```
+$ deploy-s3 -s ../settings.json
+```
 
 **Note** Only the `public` property of that JSON file will be add to the `Meteor.settings` property.
-
 
 ### App URL
 
 Additionally you can set the `ROOT_URL` of your app using the `--url` or `-u` option:
 
-    $ meteor-build-client ../myOutputFolder -u http://myserver.com
+```
+$ deploy-s3 -u http://myserver.com
+```
 
 If you pass `"default"`, your app will try to connect to the server where the application was served from.
 
 If this option was not set, it will set the server to `""` (empty string) and will add a `Meteor.disconnect()` after Meteor was loaded.
 
-### Absolute or relative paths
-
-If you want to be able to start you app by simply opening the index.html (using the `file://` protocol),
-you need to link your files relative. You can do this by setting the `--path` or `-p` option:
-
-    $ meteor-build-client ../myOutputFolder -p ""
-
-The default path value is `"/"`.
-
-*Note* When set a path value, it will also replace this path in you Meteor CSS file, so that fonts etc link correctly.
-
 ### Using custom templates
 
 If you want to provide a custom template for the initial HTML provide an HTML file with the `--template` or `-t` option:
 
-    $ meteor-build-client ../myOutputFolder -t ../myTemplate.html
+```
+$ deploy-s3 -t ../myTemplate.html
+```
 
 The template file need to contain the following placholders: `{{> head}}`, `{{> css}}` and `{{> scripts}}`.
 The following example adds a simple loading text to the initial HTML file (Your app should later take care of removing the loading text):
@@ -111,26 +141,4 @@ if(Meteor.isClient) {
     // And then you subscribe like this:
     DDPConnection.subscribe("mySubscription");   
 }
-```
-
-## Making routing work on a non Meteor server
-
-To be able to open URLs and let them be handled by the client side JavaScript, you need to rewrite URLs on the server side, so they point always to your index.html.
-
-For apache a `.htaccess` with `mod_rewrite` could look as follow:
-```bash
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /
-
-    # Always pass through requests for files that exist
-    # Per http://stackoverflow.com/a/7090026/223225
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule . - [L]
-
-    # Send all other requests to index.html where the JavaScript router can take over
-    # and render the requested route
-    RewriteRule ^.*$ index.html [L]
-</IfModule>
 ```

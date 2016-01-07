@@ -4,7 +4,7 @@ module.exports = function() {
   var invokations = [];
   var paused = true;
   var maxLength = 0;
-  
+
   self.progress = function(count, total) {
     // console.log(count + ' of ' + total);
   };
@@ -19,6 +19,7 @@ module.exports = function() {
       if (typeof f !== 'function') {
         throw new Error('queue requires function');
       }
+
       invokations.push(f);
     }
   };
@@ -28,12 +29,12 @@ module.exports = function() {
       self.reset();
       console.log(' ' + text.red);
     }
-    
-    if (!paused) {
 
+    if (!paused) {
 
       if (invokations.length) {
         var f = invokations.shift();
+
         // Update the progress
         self.progress(invokations.length, maxLength);
         setTimeout(function() {
@@ -48,6 +49,7 @@ module.exports = function() {
   self.run = function() {
     paused = false;
     maxLength = invokations.length;
+
     // Update the progress
     self.progress(invokations.length, maxLength);
     self.next();
