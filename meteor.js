@@ -11,7 +11,7 @@ var buildPath = path.resolve(argPath);
 var bundleName = path.basename(path.resolve(basePath));
 
 // execute shell scripts
-var execute = function(command, name, complete) {
+var execute = function (command, name, complete) {
   var exec = require('child_process').exec;
 
   var completeFunc = (typeof complete === 'function') ? complete : console.log;
@@ -19,7 +19,7 @@ var execute = function(command, name, complete) {
   spinner.start();
   exec(command, {
     cwd: basePath,
-  }, function(err, res) {
+  }, function (err, res) {
     spinner.stop();
 
     //process error
@@ -33,11 +33,11 @@ var execute = function(command, name, complete) {
   });
 };
 
-var deleteFolderRecursive = function(path) {
+var deleteFolderRecursive = function (path) {
   var files = [];
   if (fs.existsSync(path)) {
     files = fs.readdirSync(path);
-    files.forEach(function(file, index) {
+    files.forEach(function (file, index) {
       var curPath = path + '/' + file;
       if (fs.lstatSync(curPath).isDirectory()) { // recurse
         deleteFolderRecursive(curPath);
@@ -51,7 +51,7 @@ var deleteFolderRecursive = function(path) {
 };
 
 module.exports = {
-  build: function(program, callback) {
+  build: function (program, callback) {
     // remove the bundle folder
     deleteFolderRecursive(buildPath);
 
@@ -68,18 +68,18 @@ module.exports = {
     execute(command, 'build the app, are you in your meteor apps folder?', callback);
   },
 
-  move: function(callback) {
+  move: function (callback) {
 
     try {
       _.each([
                 '/bundle/programs/web.browser',
                 '/bundle/programs/web.browser/app',
-            ], function(givenPath) {
+            ], function (givenPath) {
         var clientPath = path.join(buildPath, givenPath);
         var rootFolder = fs.readdirSync(clientPath);
         rootFolder = _.without(rootFolder, 'app');
 
-        rootFolder.forEach(function(file) {
+        rootFolder.forEach(function (file) {
           var curSource = path.join(clientPath, file);
 
           fs.renameSync(path.join(clientPath, file), path.join(buildPath, file));
@@ -92,7 +92,7 @@ module.exports = {
     callback();
   },
 
-  addIndexFile: function(program, callback) {
+  addIndexFile: function (program, callback) {
     var starJson = require(path.resolve(buildPath) + '/bundle/star.json');
     var settingsJson = program.settings ? require(path.resolve(program.settings)) : {};
 
@@ -114,7 +114,7 @@ module.exports = {
 
     // get the css and js files
     var files = {};
-    _.each(fs.readdirSync(buildPath), function(file) {
+    _.each(fs.readdirSync(buildPath), function (file) {
       if (/^[a-z0-9]{40}\.css$/.test(file))
         files['css'] = file;
       if (/^[a-z0-9]{40}\.js$/.test(file))
@@ -173,6 +173,11 @@ module.exports = {
     if (settingsJson.public)
       settings.PUBLIC_SETTINGS = settingsJson.public;
 
+    settings.meteorEnv = {
+      NODE_ENV: 'production',
+      TEST_METADATA: '{}',
+    };
+
     scripts = scripts.replace('__meteor_runtime_config__', '<script type="text/javascript">__meteor_runtime_config__ = JSON.parse(decodeURIComponent("' + encodeURIComponent(JSON.stringify(settings)) + '"));</script>');
 
     // add Meteor.disconnect() when no server is given
@@ -185,7 +190,7 @@ module.exports = {
     fs.writeFile(path.join(buildPath, 'index.html'), content, callback);
   },
 
-  cleanUp: function(callback) {
+  cleanUp: function (callback) {
 
     // remove files
     deleteFolderRecursive(path.join(buildPath, 'bundle'));
