@@ -21,7 +21,9 @@
     "browser-only"
   ],
   "bin": {
-    "deploy-s3": "main.js"
+    "deploy-s3": "main.js",
+    "meteor-deploy-s3": "main.js",
+    "md3": "main.js"
   },
   "main": "main.js",
   "dependencies": {
