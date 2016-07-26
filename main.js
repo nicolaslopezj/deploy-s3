@@ -142,8 +142,8 @@ if (!argPath) {
     var lastProgress = 0;
     var printFileProgress = function(fileList, fileName) {
       var list = _.compact(fileList);
-      var total = _.reduce(list, (memo, item) => item.total + memo, 0);
-      var loaded = _.reduce(list, (memo, item) => item.loaded + memo, 0);
+      var total = _.reduce(list, function (memo, item) {return item.total + memo}, 0);
+      var loaded = _.reduce(list, function (memo, item) {return item.loaded + memo}, 0);
 
       if (!bar) {
         bar = new ProgressBar('[:bar] :percent', { total: total, width: 50 });
