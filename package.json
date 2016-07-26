@@ -1,6 +1,6 @@
 {
   "name": "meteor-deploy-s3",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Bundles a meteor app and uploads it to AWS S3.",
   "author": "Nicolas Lopez <nicolaslopezj@me.com>",
   "contributors": [],
